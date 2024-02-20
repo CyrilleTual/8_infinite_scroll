@@ -1,6 +1,6 @@
 "use client";
 import { axios } from "@/lib/http-common";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 export default function usePhotos({
   query,
@@ -22,17 +22,27 @@ export default function usePhotos({
 
   const API_KEY = process.env.NEXT_PUBLIC_UNSPLASH_API_KEY;
 
+  // reset photos and maxPages when query change to avoid mixing photos
+  useEffect(() => {
+    if (photos.length > 0 &&maxPages !== 0) {
+      setPhotos([]);
+      setMaxPages(0);
+    }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+
+// request to unsplach api and set photos and maxPages
   useEffect(() => {
     // request to unsplach api
-
     setLoading(true);
-   
     axios
       .get(`/search/photos`, {
         params: {
           page: pageIndex,
           query: query,
-          client_id: API_KEY,
+         client_id: API_KEY,
         },
       })
       .then(function (response) {
@@ -41,12 +51,11 @@ export default function usePhotos({
         setMaxPages(response.data.total_pages);
         setLoading(false);
  
-
       })
       .catch(function (error) {
           setError({
             state: true,
-            message: "fz",
+            message: error.message,
           });
             setLoading(false);
       })

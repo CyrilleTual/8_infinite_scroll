@@ -15,6 +15,19 @@ export default function List() {
   });
 
   const lastPicRef = useRef<HTMLLIElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
+  /////////  handle search
+    const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (searchRef.current && searchRef.current.value !== query) {
+        setQuery(searchRef.current.value);
+        setPageIndex(1);
+        }
+    };
+
+
+
 /**
  * A reference to the IntersectionObserver used for infinite scrolling.
  */
@@ -38,23 +51,32 @@ const observer = useRef<IntersectionObserver | undefined>();
   return (
     <>
       <h1 className="text-4xl">Scroll Unsplach</h1>
-      <form>
+      <form onSubmit={handleSearch}>
         <label htmlFor="search" className="block mb-4">
           Looking for images ...
         </label>
         <input
+         ref={searchRef}
           type="text"
           placeholder="type your search here"
           className=" text-slate-800 block w-full mb-14 py-3 px-2 outline-gray-500 rounded-lg border border-slate-800"
         />
       </form>
+
+      {/* Loading */}
       {loading && (
         <div className="flex justify-center ">
-          <Image src={spinner} alt="spinner" />
+          <Image src={spinner} alt="spinner" priority/>
         </div>
       )}
 
-      {error.state && <p>Error </p>}
+      {/*  error */}
+      {error.state && <p>Error: {error.message} </p>}
+
+      {/* No data available */}
+      {!loading && !error.state && photos.length === 0 && <p>No data for this request </p>}
+
+
 
       <ul className="grid grid-cols-[repeat(auto-fill,minmax(250px,_1fr))] auto-rows-[175px] gap-4 justify-center ] ">
         {photos.map((photo, index) => {
@@ -69,6 +91,7 @@ const observer = useRef<IntersectionObserver | undefined>();
                   src={photo.urls.regular}
                   alt={photo.alt_description}
                   className="w-full h-full object-contain rounded-lg"
+                  priority={true}   
                 />
               </li>)
           } else
@@ -88,6 +111,8 @@ const observer = useRef<IntersectionObserver | undefined>();
             );
         })}
       </ul>
+
+      {photos && maxPages === pageIndex && <p>End of the list</p>}
     </>
   );
 }
